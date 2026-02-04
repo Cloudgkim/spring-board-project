@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <header th:fragment="header">
+
+        <nav class="navbar bg-light border-bottom">
+            <div class="container">
+                <h1>
+                    <a th:href="@{/}" class="text-decoration-none text-dark">My Board</a>
+                </h1>
+
+                <div class="ms-auto">
+                    <!-- 로그인 상태에 따른 버튼 -->
+                    <!-- 로그인 안 했을 떄 -->
+                    <span th:if="${session.loginUser == null}">
+                        <a th:href="@{/signup}">회원가입</a> |
+                        <a th:href="@{/login}">로그인</a>
+                    </span>
+
+                    <!-- 로그인 했을 때 -->
+                    <span th:if="${session.loginUser != null}">
+                        <span th:text="${session.loginUser.username} + '님 환영합니다.'"></span> |
+                        <a th:href="@{/logout}">로그아웃</a>
+                    </span>
+                </div>
+            </div>
+        </nav>
+
+    </header>
+
+</body>
+</html>

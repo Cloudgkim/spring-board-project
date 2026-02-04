@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<style>
+    .current {
+        font-weight: bold;
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+</style>
+
+<body>
+
+    <div class="container my-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>📋 게시판 📋</h2>
+
+
+            <!-- 검색 폼 -->
+            <form action="/" method="get" class="d-flex gap-2">
+                <input type="text" name="keyword" placeholder="검색어" th:value="${keyword}"
+                       class="form-control form-control-sm">
+
+                <select name="sort" class="form-select form-select-sm">
+                    <option value="new" th:selected="${sort == 'new'}">최신순</option>
+                    <option value="old" th:selected="${sort == 'old'}">오래된순</option>
+                </select>
+
+                <button type="submit" class="btn btn-sm btn-outline-primary px-3 text-nowrap">
+                    검색</button>
+            </form>
+        </div>
+    </div>
+
+    <table class="table table-hover align-middle">
+        <thead class="table-light text-center">
+        <tr>
+            <th>번호</th>
+            <th>제목</th>
+            <th>작성자</th>
+<!--            <th>내용</th>-->
+            <th>작성일</th>
+            <th>수정일</th>
+            <th>조회수</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr th:if="${#lists.isEmpty(posts)}">
+            <td colspan="6" class="text-center text-muted py-4">
+                검색 결과가 없습니다.
+            </td>
+        </tr>
+
+        <tr th:each="post : ${posts}">
+            <td th:text="${post.id}"
+                class="text-center"></td>
+            <td style="max-width: 300px;">
+                <b><a th:href="@{/board/{id}(id=${post.id})}"
+                   th:text="${post.title}"
+                   class="text-decoration-none text-dark text-truncate d-block w-100">
+                </a></b>
+            </td>
+            <td th:text="${post.user.username}"
+                class="text-center"></td>
+            <!--            <td th:text="${post.content}"></td>-->
+            <td th:text="${#temporals.format(post.createDate, 'yyyy-MM-dd HH:mm')}"
+                class="text-center"></td>
+            <td th:text="${#temporals.format(post.updateDate, 'yyyy-MM-dd HH:mm')}"
+                class="text-center"></td>
+            <td th:text="${post.viewCount}"
+                class="text-center text-muted small"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="container position-relative">
+        <nav class="d-flex justify-content-center gap-2">
+            <!-- 페이징(가운데 -->
+            <span th:if="${currentPage > 0}">
+                <a th:href="@{/(page=${currentPage - 1}, sort=${sort}, keyword=${keyword})}">이전</a>
+            </span>
+
+            <span th:each="i : ${pageNumbers}">
+                <a th:href="@{/(page=${i}, sort=${sort}, keyword=${keyword})}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == currentPage} ? ' current' : ''"></a>
+            </span>
+
+            <span th:if="${currentPage + 1 < totalPages}">
+                <a th:href="@{/(page=${currentPage + 1}, sort=${sort}, keyword=${keyword})}">다음</a>
+            </span>
+        </nav>
+
+        <!-- 글쓰기 버튼(오른쪽) -->
+        <div class="position-absolute end-0 top-50 translate-middle-y">
+            <!-- 로그인 상태 -->
+            <a th:if="${loginUser != null}" th:href="@{/board/new}"
+               class="btn btn-success btn-sm">
+                글쓰기
+            </a>
+
+            <!-- 비로그인 상태 -->
+            <span th:if="${loginUser == null}" class="text-muted">
+                글쓰기는 <a th:href="@{/login}">로그인</a> 후 이용 가능합니다.
+            </span>
+        </div>
+
+    </div>
+
+
+<!--
+로그인 후 원래 화면으로 돌아오기 -> 추후 추가
+<span th:if="${loginUser == null}">
+    글쓰기는 로그인 후 이용 가능합니다.
+    <a th:href="@{/login(returnUrl=${#httpServletRequest.requestURI})}">
+        로그인
+    </a>
+</span>
+-->
+
+</body>
+</html>

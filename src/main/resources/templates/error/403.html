@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>403</title>
+</head>
+<body>
+
+<h2>🚫 접근할 수 없습니다</h2>
+<p th:text="${errorMessage} ?: '해당 페이지에 대한 권한이 없습니다.'"></p>
+
+<a href="javascript:history.back()">이전 페이지</a>
+|
+<a href="/">홈으로</a>
+</body>
+</html>

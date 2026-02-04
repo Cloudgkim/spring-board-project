@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div class="container my-2">
+
+    <h2>✏️ 게시글 수정 ✏️</h2>
+
+    <form th:action="@{/board/{id}/edit(id=${post.id})}"
+          th:object="${post}"
+          method="post">
+
+        <div class="mb-3">
+            <label class="form-label">번호</label>
+            <input type="text" class="form-control"
+                   th:value="${post.id}" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">제목</label>
+            <input type="text"
+                   class="form-control"
+                   th:field="*{title}">
+
+            <!-- 제목 에러 -->
+            <div class="text-danger small"
+                 th:if="${#fields.hasErrors('title')}"
+                 th:errors="*{title}">
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">내용</label>
+            <textarea class="form-control"
+                      rows="8"
+                      th:field="*{content}"></textarea>
+
+            <!-- 내용 에러 -->
+            <div class="text-danger small"
+                 th:if="${#fields.hasErrors('content')}"
+                 th:errors="*{content}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">작성일</label>
+                <input type="text"
+                       class="form-control"
+                       th:value="${#temporals.format(post.createDate, 'yyyy-MM-dd HH:mm')}"
+                       readonly>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">수정일</label>
+                <input type="text"
+                       class="form-control"
+                       th:value="${#temporals.format(post.updateDate, 'yyyy-MM-dd HH:mm')}"
+                       readonly>
+            </div>
+        </div>
+
+        <!-- 버튼 영역 -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+
+            <a th:href="@{/board/{id}(id=${post.id})}"
+               class="btn btn-secondary">
+                취소
+            </a>
+
+            <button type="submit"
+                    class="btn btn-primary"
+                    onclick="return confirm('수정할까요?');">
+                저장
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>
