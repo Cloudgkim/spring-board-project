@@ -29,7 +29,7 @@ public class PostService {
         this.categoryRepository = categoryRepository;
     }
 
-    // 전체 게시글 페이징 + 정렬
+    // 전체 게시글 페이징 + 정렬 + 카테고리 찾기
     public Page<Post> getPosts(int page, int size, String sort, Long categoryId) {
         PageRequest pageRequest = PageRequest.of(page, size,
                 sort.equals("old") ? Sort.by("createDate").ascending() : Sort.by("createDate").descending()); // 0부터 시작
@@ -37,13 +37,15 @@ public class PostService {
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리"));
-            return postRepository.findByCategory(category, pageRequest);
+            //return postRepository.findByCategory(category, pageRequest);
+            return postRepository.findByCategoryAndDeleteDateIsNull(category, pageRequest);
         }
 
-        return postRepository.findAll(pageRequest);
+        //return postRepository.findAll(pageRequest);
+        return postRepository.findByDeleteDateIsNull(pageRequest);
     }
 
-    //  제목 검색 페이징 + 정렬
+    //  제목 검색 페이징 + 정렬 + 카테고리 찾기
     public Page<Post> searchByTitle(String keyword, int page, int size, String sort, Long categoryId) {
         PageRequest pageRequest = PageRequest.of(page, size,
                 sort.equals("old") ? Sort.by("createDate").ascending() : Sort.by("createDate").descending());
@@ -51,11 +53,19 @@ public class PostService {
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리"));
-            return postRepository.findByTitleContainingAndCategory(keyword, category, pageRequest);
+            //return postRepository.findByTitleContainingAndCategory(keyword, category, pageRequest);
+            return postRepository
+                    .findByTitleContainingAndCategoryAndDeleteDateIsNull(
+                            keyword, category, pageRequest
+                    );
         }
 
         // keyword를 두 번 전달
-        return postRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageRequest);
+        //return postRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageRequest);
+        return postRepository
+                .findByDeleteDateIsNullAndTitleContainingOrDeleteDateIsNullAndContentContaining(
+                        keyword, keyword, pageRequest
+                );
     }
 
     // 게시글 상세 조회 시 -> 조회수 +1 증가
@@ -106,11 +116,15 @@ public class PostService {
         if (!post.getUser().getId().equals(loginUser.getId())) {
             throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
-        // 댓글 먼저 삭제
-        commentRepository.deleteByPost(post);
 
+
+        // 댓글 먼저 삭제
+        //commentRepository.deleteByPost(post);
         // 그 다음 게시글 삭제
-        postRepository.delete(post);
+        //postRepository.delete(post);
+
+        // 게시글 소프트 delete
+        post.delete(); //
     }
 
 

@@ -33,7 +33,7 @@ public class Post {
     @Column(name = "view_count")
     private int viewCount = 0; // 기본값 0
 
-    // ✅ 카테고리 FK (Category.code 참조)
+    // 카테고리 FK (Category.code 참조)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false) // Post 테이블의 FK 컬럼
     private Category category;
@@ -46,6 +46,11 @@ public class Post {
     private LocalDateTime createDate;
     @Column(name = "update_date")
     private LocalDateTime updateDate;
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
 
+    public void delete() {
+        this.deleteDate = LocalDateTime.now();
+    }
 
 }

@@ -36,7 +36,11 @@ public class Comment {
     @JoinColumn(name = "post_id")
     private Post post;
 
+    @Column(name = "create_date")
     private LocalDateTime createDate = LocalDateTime.now();
+
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
 
     public Comment(String content, User user, Post post) {
         this.content = content;
@@ -44,5 +48,8 @@ public class Comment {
         this.post = post;
     }
 
+    public void delete() {
+        this.deleteDate = LocalDateTime.now();
+    }
 
 }

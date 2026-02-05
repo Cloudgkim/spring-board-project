@@ -17,12 +17,7 @@
 
             <!-- 검색 폼 -->
             <form action="/" method="get" class="d-flex gap-2">
-<!--
-                <select class="form-select form-select-sm" th:field="*{category}">
-                    <option value="">카테고리</option>
-                    <option th:each="c : ${category}" th:value="${c.id}" th:text="${c.name}"></option>
-                </select>
--->
+
                 <select class="form-select form-select-sm" name="category">
                     <option value="">전체</option>
                     <option th:each="c : ${category}"
@@ -54,7 +49,6 @@
             <th>카테고리</th>
             <th>제목</th>
             <th>작성자</th>
-<!--            <th>내용</th>-->
             <th>작성일</th>
             <th>수정일</th>
             <th>조회수</th>
@@ -81,7 +75,6 @@
             </td>
             <td th:text="${post.user.username}"
                 class="text-center"></td>
-            <!--            <td th:text="${post.content}"></td>-->
             <td th:text="${#temporals.format(post.createDate, 'yyyy-MM-dd HH:mm')}"
                 class="text-center"></td>
             <td th:text="${#temporals.format(post.updateDate, 'yyyy-MM-dd HH:mm')}"
