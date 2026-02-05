@@ -21,17 +21,22 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "제목은 필수입니다.")
+    @NotBlank(message = "제목을 입력하세요.")
     @Column(nullable = false, length = 200)
     private String title;
 
-    @NotBlank(message = "내용은 필수입니다.")
+    @NotBlank(message = "내용을 입력하세요.")
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     // 조회수 필드 추가
     @Column(name = "view_count")
     private int viewCount = 0; // 기본값 0
+
+    // ✅ 카테고리 FK (Category.code 참조)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false) // Post 테이블의 FK 컬럼
+    private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

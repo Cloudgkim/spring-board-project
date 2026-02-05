@@ -1,8 +1,10 @@
 package com.cloudg.board.controller;
 
+import com.cloudg.board.entity.Category;
 import com.cloudg.board.entity.Comment;
 import com.cloudg.board.entity.Post;
 import com.cloudg.board.entity.User;
+import com.cloudg.board.repository.CategoryRepository;
 import com.cloudg.board.repository.PostRepository;
 import com.cloudg.board.service.CommentService;
 import com.cloudg.board.service.PostService;
@@ -21,13 +23,16 @@ import java.util.List;
 public class PostController {
 
     private final PostRepository postRepository;
+    private final CategoryRepository categoryRepository;
     private final PostService postService;
     private final CommentService commentService;
 
     public PostController(PostRepository postRepository,
+                          CategoryRepository categoryRepository,
                           PostService postService,
                           CommentService commentService) {
         this.postRepository = postRepository;
+        this.categoryRepository = categoryRepository;
         this.postService = postService;
         this.commentService = commentService;
     }
@@ -44,18 +49,21 @@ public class PostController {
                          @RequestParam(defaultValue = "10") int size, // 한 페이지에 보여줄 게시글 수
                          @RequestParam(required = false) String keyword, // 검색어
                          @RequestParam(defaultValue = "new") String sort, // 정렬 최신순(default)
+                         @RequestParam(required = false) Long category, // 카테고리
                          @SessionAttribute(name = "loginUser", required = false) User loginUser,
                          Model model) {
 
         Page<Post> posts;
         if (keyword != null && !keyword.isEmpty()) { // 키워드가 있을 떄
-            posts = postService.searchByTitle(keyword, page, size, sort);
+            posts = postService.searchByTitle(keyword, page, size, sort, category);
             model.addAttribute("keyword", keyword); // 뷰에서 검색어 유지
         } else { // 키워드가 없을 때, 기본 조회
-            posts = postService.getPosts(page, size, sort);
+            posts = postService.getPosts(page, size, sort, category);
             model.addAttribute("keyword", ""); // null 대신 빈 문자열
         }
 
+        model.addAttribute("category", categoryRepository.findAll()); // 카테고리 리스트
+        model.addAttribute("selectedCategory", category); // 선택된 카테고리 유지
         model.addAttribute("posts", posts.getContent()); // 실제 게시글 리스트
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", posts.getTotalPages());
@@ -85,6 +93,7 @@ public class PostController {
         List<Comment> comments = commentService.findByPost(post);
 
         model.addAttribute("post", post);
+        model.addAttribute("category", post.getCategory());
         model.addAttribute("comments", comments);
         model.addAttribute("content", "boardDetail");
         model.addAttribute("title", "게시글 상세");
@@ -93,13 +102,15 @@ public class PostController {
 
     // 새 게시글 작성 화면
     @GetMapping("/board/new")
-    public String boardNew(@SessionAttribute(name = "loginUser", required = false) User loginUser,
+    public String boardNew(@RequestParam(defaultValue = "") String category, // 카테고리
+                           @SessionAttribute(name = "loginUser", required = false) User loginUser,
                            Model model) {
 
         if (loginUser == null) {
             return "redirect:/login";
         }
 
+        model.addAttribute("category", categoryRepository.findAll());
         model.addAttribute("post", new Post());
         model.addAttribute("content", "boardNew");
         model.addAttribute("title", "게시글 작성");
@@ -110,14 +121,25 @@ public class PostController {
     @PostMapping("/board/insert")
     public String boardInsert(@Valid Post post,
                               BindingResult bindingResult,
-                              @SessionAttribute(name = "loginUser", required = false) User loginUser) {
+                              @SessionAttribute(name = "loginUser", required = false) User loginUser,
+                              Model model) {
 
         if (loginUser == null) {
             return "redirect:/login";
         }
 
+        // 카테고리 선택 여부 체크
+        if (post.getCategory() == null || post.getCategory().getId() == null) {
+            bindingResult.rejectValue("category", "NotNull", "카테고리를 선택하세요");
+        }
+
+        // Validation 오류 시 GET 화면처럼 다시 렌더링
         if(bindingResult.hasErrors()) {
-            return "boardNew";
+            model.addAttribute("category", categoryRepository.findAll());
+            model.addAttribute("post", post);
+            model.addAttribute("content", "boardNew");
+            model.addAttribute("title", "게시글 작성");
+            return "layout/layout";
         }
 
         post.setUser(loginUser);
@@ -143,6 +165,7 @@ public class PostController {
             throw new IllegalStateException("수정 권한이 없습니다.");
         }
 
+        model.addAttribute("category", categoryRepository.findAll());
         model.addAttribute("post", post);
         model.addAttribute("content", "boardEdit");
         model.addAttribute("title", "게시글 수정");
@@ -153,18 +176,40 @@ public class PostController {
     // 게시글 수정
     @PostMapping("/board/{id}/edit")
     public String boardUpdate(@PathVariable Long id,
-                           @Valid @ModelAttribute("post") Post post,
-                           BindingResult bindingResult,
-                           @SessionAttribute(name = "loginUser", required = false) User loginUser) {
+                              @Valid @ModelAttribute("post") Post post,
+                              BindingResult bindingResult,
+                              @SessionAttribute(name = "loginUser", required = false) User loginUser,
+                              Model model) {
 
-        if (bindingResult.hasErrors()) {
-            return "boardEdit";
+        // 카테고리 선택 여부 체크
+        if (post.getCategory() == null || post.getCategory().getId() == null) {
+            bindingResult.rejectValue("category", "NotNull", "카테고리를 선택하세요");
         }
+
+        // Validation 오류 시 GET 화면처럼 다시 렌더링
+        if(bindingResult.hasErrors()) {
+            // DB에서 기존 게시글 가져오기
+            Post existingPost = postRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+
+            // 날짜, 작성자 등 원래 값 유지
+            post.setCreateDate(existingPost.getCreateDate());
+            post.setUpdateDate(existingPost.getUpdateDate());
+            //post.setUser(existingPost.getUser());
+
+            model.addAttribute("category", categoryRepository.findAll());
+            model.addAttribute("post", post);
+            model.addAttribute("content", "boardEdit");
+            model.addAttribute("title", "게시글 수정");
+            return "layout/layout";
+        }
+
 
         postService.update(id, post, loginUser);
 
         return "redirect:/board/" + id;
     }
+
     // 게시글 삭제
     @PostMapping("/board/{id}/delete")
     public String boardDelete(@PathVariable Long id,
@@ -174,7 +219,6 @@ public class PostController {
             return "redirect:/login";
         }
 
-        // postRepository.deleteById(id);
         postService.delete(id, loginUser);
         return "redirect:/";
     }

@@ -1,5 +1,6 @@
 package com.cloudg.board.repository;
 
+import com.cloudg.board.entity.Category;
 import com.cloudg.board.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 제목 + 내용 검색
     Page<Post> findByTitleContainingOrContentContaining(String titleKeyword, String contentKeyword, Pageable pageable);
+
+    Page<Post> findByCategory(Category category, Pageable pageable);
+    Page<Post> findByTitleContainingAndCategory(String title, Category category, Pageable pageable);
+
 
 }
 

@@ -1,7 +1,9 @@
 package com.cloudg.board.service;
 
+import com.cloudg.board.entity.Category;
 import com.cloudg.board.entity.Post;
 import com.cloudg.board.entity.User;
+import com.cloudg.board.repository.CategoryRepository;
 import com.cloudg.board.repository.CommentRepository;
 import com.cloudg.board.repository.PostRepository;
 import jakarta.transaction.Transactional;
@@ -17,23 +19,41 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final CategoryRepository categoryRepository;
 
-    public PostService(PostRepository postRepository, CommentRepository commentRepository) {
+    public PostService(PostRepository postRepository,
+                       CommentRepository commentRepository,
+                       CategoryRepository categoryRepository) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     // 전체 게시글 페이징 + 정렬
-    public Page<Post> getPosts(int page, int size, String sort) {
+    public Page<Post> getPosts(int page, int size, String sort, Long categoryId) {
         PageRequest pageRequest = PageRequest.of(page, size,
                 sort.equals("old") ? Sort.by("createDate").ascending() : Sort.by("createDate").descending()); // 0부터 시작
+
+        if (categoryId != null) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리"));
+            return postRepository.findByCategory(category, pageRequest);
+        }
+
         return postRepository.findAll(pageRequest);
     }
 
     //  제목 검색 페이징 + 정렬
-    public Page<Post> searchByTitle(String keyword, int page, int size, String sort) {
+    public Page<Post> searchByTitle(String keyword, int page, int size, String sort, Long categoryId) {
         PageRequest pageRequest = PageRequest.of(page, size,
                 sort.equals("old") ? Sort.by("createDate").ascending() : Sort.by("createDate").descending());
+
+        if (categoryId != null) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 카테고리"));
+            return postRepository.findByTitleContainingAndCategory(keyword, category, pageRequest);
+        }
+
         // keyword를 두 번 전달
         return postRepository.findByTitleContainingOrContentContaining(keyword, keyword, pageRequest);
     }
@@ -66,6 +86,7 @@ public class PostService {
         }
 
         savedPost.setTitle(post.getTitle());
+        savedPost.setCategory(post.getCategory());
         savedPost.setContent(post.getContent());
         savedPost.setUpdateDate(LocalDateTime.now());
     }
