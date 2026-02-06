@@ -54,7 +54,6 @@ public class UserController {
                               HttpSession session) {
 
         User user = userService.loginUser(username, password);
-        System.out.println("userController user?????????? = " + user);
         if (user == null) {
             return "redirect:/login?error"; // 로그인 실패
         }
