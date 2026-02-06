@@ -1,6 +1,7 @@
 package com.cloudg.board.service;
 
 import com.cloudg.board.entity.Category;
+import com.cloudg.board.entity.Comment;
 import com.cloudg.board.entity.Post;
 import com.cloudg.board.entity.User;
 import com.cloudg.board.repository.CategoryRepository;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PostService {
@@ -117,13 +119,13 @@ public class PostService {
             throw new IllegalArgumentException("삭제 권한이 없습니다.");
         }
 
+        // 댓글 soft delete
+        List<Comment> comments = commentRepository.findByPostAndDeleteDateIsNull(post);
+        for (Comment comment : comments) {
+            comment.delete();
+        }
 
-        // 댓글 먼저 삭제
-        //commentRepository.deleteByPost(post);
-        // 그 다음 게시글 삭제
-        //postRepository.delete(post);
-
-        // 게시글 소프트 delete
+        // 게시글 soft delete
         post.delete(); //
     }
 

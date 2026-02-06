@@ -28,6 +28,7 @@ public class CommentService {
 
     // 게시글별 댓글 조회
     public List<Comment> findByPost(Post post) {
-        return commentRepository.findByPostOrderByCreateDateAsc(post);
+        return commentRepository.findByPostAndDeleteDateIsNullOrderByCreateDateAsc(post);
     }
+
 }

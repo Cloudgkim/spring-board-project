@@ -82,6 +82,7 @@ spring.datasource.password=test1234
 
 ./gradlew bootRun
 
+---
 
 ## 📸 화면 예시
 
@@ -93,7 +94,8 @@ spring.datasource.password=test1234
 
 - 게시글 상세  
   ![게시글 상세](./screenshots/boardDetail.png)
-- 
+
+---
 
 ## 🔧 개선 및 학습한 점
 - Spring Security 적용으로 인증 구조 강화 가능
