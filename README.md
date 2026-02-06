@@ -42,6 +42,7 @@ src
 - 댓글 작성 및 삭제
 - 카테고리별 게시글 조회
 - Validation 적용 및 오류 메시지 처리
+- 게시글 삭제 시 연관된 댓글까지 soft delete 처리
 
 ---
 
@@ -53,6 +54,10 @@ src
 - 페이징 처리로 대용량 데이터 조회 최적화
 - 카테고리 연관관계 설정 및 선택 유지 처리
 - Validation 적용으로 입력 데이터 검증
+- 게시글 및 댓글 Soft Delete 설계 (deleteDate 기반 삭제 전략)
+  - 데이터 물리 삭제 없이 deleteDate 갱신 방식으로 관리
+  - 게시글 삭제 시 연관된 댓글까지 트랜잭션 내에서 함께 처리
+  - 조회 시 deleteDate IS NULL 조건으로 사용자 노출 제어
 
 ---
 
@@ -62,6 +67,9 @@ src
 - Validation 처리 및 BindingResult 활용
 - 페이징과 정렬 로직 구현 및 Thymeleaf와의 연동
 - 선택한 카테고리 유지 및 조회 필터링
+- Hard delete 대신 Soft delete를 선택한 이유와 적용 범위 설계
+  - 게시글과 댓글 간 데이터 정합성 유지
+  - 삭제 이력 관리 및 확장 가능성 고려
 
 ---
 
@@ -103,4 +111,5 @@ spring.datasource.password=test1234
 - JPA fetch 전략 최적화 및 페이징 성능 개선 경험
 - Validation 적용 및 오류 메시지 처리 경험
 - Git 커밋 메시지 정리 및 브랜치 관리 경험
+- Soft delete 설계를 통해 데이터 이력 관리 및 운영 관점의 삭제 전략 이해
 

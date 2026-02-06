@@ -12,7 +12,6 @@ import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
         HibernateJpaAutoConfiguration.class
     }
     */
-
 public class BoardApplication {
 
 	public static void main(String[] args) {
